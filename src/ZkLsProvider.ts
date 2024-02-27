@@ -4,6 +4,7 @@ interface Note {
     title: string;
     absPath: string;
     metadata: { aliases: string[] | string; };
+    modified: string
 }
 
 export class ZkLsProvider implements vscode.TreeDataProvider<ZkLsItem> {
@@ -41,7 +42,7 @@ export class ZkLsProvider implements vscode.TreeDataProvider<ZkLsItem> {
     }
 
     async getChildren(element?: ZkLsItem | undefined): Promise<ZkLsItem[]> {
-        return this.createList();
+        return (await this.createList()).sort((note1: ZkLsItem, note2: ZkLsItem) => note1.modified.getTime() - note2.modified.getTime());
     }
 
     private async createList(): Promise<ZkLsItem[]> {
@@ -54,14 +55,14 @@ export class ZkLsProvider implements vscode.TreeDataProvider<ZkLsItem> {
                     const _aliases = datum.metadata.aliases;
                     return [
                         // item from title
-                        new ZkLsItem(datum.title, vscode.Uri.file(datum.absPath)),
+                        new ZkLsItem(datum.title, vscode.Uri.file(datum.absPath), datum.modified),
                         // items from aliases
                         ...(Array.isArray(_aliases)
                             ? _aliases
                             : (typeof _aliases === "string"
                                 ? _aliases.split(',').map((alias: string) => alias.trim())
                                 : [])
-                        ).map((alias: string) => new ZkLsItem(alias, vscode.Uri.file(datum.absPath)))
+                        ).map((alias: string) => new ZkLsItem(alias, vscode.Uri.file(datum.absPath), datum.modified))
                     ];
                 });
         } catch (error) {
@@ -87,12 +88,15 @@ export class ZkLsProvider implements vscode.TreeDataProvider<ZkLsItem> {
 }
 
 class ZkLsItem extends vscode.TreeItem {
+    modified: Date;
     constructor(
         label: string,
-        resourceUri: vscode.Uri
+        resourceUri: vscode.Uri,
+        modified: string
     ) {
         super(label, vscode.TreeItemCollapsibleState.None);
         this.resourceUri = resourceUri;
+        this.modified = new Date(modified);
     };
 
     open() {
