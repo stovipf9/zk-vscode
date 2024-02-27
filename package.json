@@ -24,6 +24,18 @@
       {
         "command": "zk.showLogs",
         "title": "zk: Show Logs"
+      },
+      {
+        "command": "zkls.treeview.item_clicked",
+        "title": "zk list view item"
+      },
+      {
+        "command": "zkls.treeview.refresh",
+        "title": "zk list refresh",
+        "icon": {
+          "light": "src/assets/img_light/refresh.svg",
+          "dark": "src/assets/img_dark/refresh.svg"
+        }
       }
     ],
     "configuration": {
@@ -41,6 +53,23 @@
           "scope": "window"
         }
       }
+    },
+    "views": {
+      "explorer": [
+        {
+          "id": "zkls.treeview",
+          "name": "zk list"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "zkls.treeview.refresh",
+          "when": "view == zkls.treeview",
+          "group": "navigation@0"
+        }
+      ]
     }
   },
   "scripts": {

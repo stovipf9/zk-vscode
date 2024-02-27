@@ -6,6 +6,7 @@ import {
 	LanguageClientOptions,
 	ServerOptions
 } from 'vscode-languageclient/node';
+import { ZkLsProvider } from './ZkLsProvider';
 
 const clientName = "zk"
 const clientId = "zk"
@@ -25,6 +26,10 @@ export async function activate(context: ExtensionContext) {
 	context.subscriptions.push(
 		restartCmd,
 		showLogsCmd,
+		vscode.window.registerTreeDataProvider(
+			"zkls.treeview",
+			new ZkLsProvider()
+		)
 	);
 
 	startClient(context)
