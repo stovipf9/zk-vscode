@@ -6,7 +6,7 @@ import {
   LanguageClientOptions,
   ServerOptions,
 } from "vscode-languageclient/node";
-import { ZkListProvider } from "./ZkLsProvider";
+import { ZkListProvider } from "./ZkListProvider";
 import { ZkNotes } from "./ZkNotes";
 
 const clientName = "zk";
