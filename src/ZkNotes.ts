@@ -6,17 +6,25 @@ interface ZkNoteDatum {
   absPath: string;
   metadata: { aliases: string[] | string };
   modified: string;
+  body: string;
 }
 
 export class ZkNote {
   public title: string;
   public uri: vscode.Uri;
   public modifiedDate: Date;
+  public body: string;
 
-  constructor(title: string, uri: vscode.Uri, modifiedDate: Date) {
+  constructor(
+    title: string,
+    uri: vscode.Uri,
+    modifiedDate: Date,
+    body: string
+  ) {
     this.title = title;
     this.uri = uri;
     this.modifiedDate = modifiedDate;
+    this.body = body;
   }
 
   toTreeItem(): vscode.TreeItem {
@@ -34,7 +42,8 @@ export class ZkNote {
     return {
       label: this.title,
       kind: vscode.QuickPickItemKind.Default,
-      // TODO: description, detail: filename & content?
+      description: vscode.workspace.asRelativePath(this.uri),
+      detail: this.body,
       picked: false,
       alwaysShow: false,
       uri: this.uri,
@@ -91,7 +100,8 @@ export class ZkNotes {
             new ZkNote(
               datum.title,
               vscode.Uri.file(datum.absPath),
-              new Date(datum.modified)
+              new Date(datum.modified),
+              datum.body
             ),
             // Items from aliases
             ...(Array.isArray(aliases)
@@ -104,7 +114,8 @@ export class ZkNotes {
                 new ZkNote(
                   alias,
                   vscode.Uri.file(datum.absPath),
-                  new Date(datum.modified)
+                  new Date(datum.modified),
+                  datum.body
                 )
             ),
           ];

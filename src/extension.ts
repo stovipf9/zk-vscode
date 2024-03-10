@@ -49,7 +49,7 @@ export async function activate(context: ExtensionContext) {
           matchOnDescription: true,
           matchOnDetail: true,
           placeHolder: "Enter note title or aliases",
-          ignoreFocusOut: true,
+          ignoreFocusOut: false,
           canPickMany: false,
         }
       );
