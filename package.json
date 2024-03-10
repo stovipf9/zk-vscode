@@ -26,16 +26,16 @@
         "title": "zk: Show Logs"
       },
       {
-        "command": "zkls.treeview.item_clicked",
-        "title": "zk list view item"
-      },
-      {
         "command": "zkls.treeview.refresh",
-        "title": "zk list refresh",
+        "title": "zk: list refresh",
         "icon": {
           "light": "src/assets/img_light/refresh.svg",
           "dark": "src/assets/img_dark/refresh.svg"
         }
+      },
+      {
+        "command": "zk.find",
+        "title": "zk: Find Note"
       }
     ],
     "configuration": {

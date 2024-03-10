@@ -1,0 +1,148 @@
+import * as vscode from "vscode";
+
+// Results of JSON.parse
+interface ZkNoteDatum {
+  title: string;
+  absPath: string;
+  metadata: { aliases: string[] | string };
+  modified: string;
+}
+
+export class ZkNote {
+  public title: string;
+  public uri: vscode.Uri;
+  public modifiedDate: Date;
+
+  constructor(title: string, uri: vscode.Uri, modifiedDate: Date) {
+    this.title = title;
+    this.uri = uri;
+    this.modifiedDate = modifiedDate;
+  }
+
+  toTreeItem(): vscode.TreeItem {
+    const treeItem = new vscode.TreeItem(this.title);
+    treeItem.resourceUri = this.uri;
+    treeItem.command = {
+      command: "vscode.open",
+      title: `${this.title} is opened`,
+      arguments: [this.uri],
+    };
+    return treeItem;
+  }
+
+  toQuickPickItem(): vscode.QuickPickItem & { uri: vscode.Uri } {
+    return {
+      label: this.title,
+      kind: vscode.QuickPickItemKind.Default,
+      // TODO: description, detail: filename & content?
+      picked: false,
+      alwaysShow: false,
+      uri: this.uri,
+    };
+  }
+}
+
+type ZkNotesOption = (_: ZkNotes) => void;
+
+export class ZkNotes {
+  // Path to zk root directory
+  private static rootPath: string | undefined;
+  notes: ZkNote[] = [];
+
+  constructor(...options: ZkNotesOption[]) {
+    for (const option of options) {
+      option(this);
+    }
+  }
+
+  public static withRootPath(rootPath: string): ZkNotesOption {
+    return (z: ZkNotes) => {
+      ZkNotes.rootPath = rootPath;
+    };
+  }
+
+  public static async withNotes(): Promise<ZkNotesOption> {
+    const zkNotes = await ZkNotes.retrieveNotes();
+    return (z: ZkNotes) => {
+      z.notes = zkNotes;
+    };
+  }
+
+  public static async retrieveNotes(): Promise<ZkNote[]> {
+    // Check if the root path is not set and set it from the workspace if available
+    if (ZkNotes.rootPath === undefined) {
+      ZkNotes.rootPath =
+        vscode.workspace.workspaceFolders &&
+        vscode.workspace.workspaceFolders.length > 0
+          ? vscode.workspace.workspaceFolders[0].uri.fsPath
+          : undefined;
+    }
+    // Parse stdout from the command "zk list" into list of TreeItems
+    try {
+      const stdout = await ZkNotes.executeCommand(
+        `zk list -W ${this.rootPath} -P -f json`
+      );
+      const notes = await JSON.parse(stdout)
+        .filter((datum: ZkNoteDatum) => datum.title !== "")
+        .flatMap((datum: ZkNoteDatum) => {
+          const aliases = datum.metadata.aliases;
+          return [
+            // Item from title
+            new ZkNote(
+              datum.title,
+              vscode.Uri.file(datum.absPath),
+              new Date(datum.modified)
+            ),
+            // Items from aliases
+            ...(Array.isArray(aliases)
+              ? aliases
+              : typeof aliases === "string"
+              ? aliases.split(",").map((alias: string) => alias.trim())
+              : []
+            ).map(
+              (alias: string): ZkNote =>
+                new ZkNote(
+                  alias,
+                  vscode.Uri.file(datum.absPath),
+                  new Date(datum.modified)
+                )
+            ),
+          ];
+        });
+      // Sort notes based on modified date
+      return notes.sort((note1: ZkNote, note2: ZkNote) => {
+        return note1.modifiedDate.getTime() - note2.modifiedDate.getTime();
+      });
+    } catch (error) {
+      const errStr =
+        error instanceof Error
+          ? `Error executing command: ${error.message}`
+          : "Error executing command";
+      vscode.window.showErrorMessage(errStr);
+      throw error;
+    }
+  }
+
+  private static async executeCommand(command: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      require("child_process").exec(
+        command,
+        (error: Error | null, stdout: string, stderr: string) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(stdout);
+          }
+        }
+      );
+    });
+  }
+
+  toTreeItems(): vscode.TreeItem[] {
+    return this.notes.map((zkNote: ZkNote) => zkNote.toTreeItem());
+  }
+
+  toQuickPickItems(): (vscode.QuickPickItem & { uri: vscode.Uri })[] {
+    return this.notes.map((zkNote: ZkNote) => zkNote.toQuickPickItem());
+  }
+}
