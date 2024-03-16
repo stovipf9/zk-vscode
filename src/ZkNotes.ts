@@ -120,9 +120,9 @@ export class ZkNotes {
             ),
           ];
         });
-      // Sort notes based on modified date
+      // Sort notes based on modified date (descending)
       return notes.sort((note1: ZkNote, note2: ZkNote) => {
-        return note1.modifiedDate.getTime() - note2.modifiedDate.getTime();
+        return note2.modifiedDate.getTime() - note1.modifiedDate.getTime();
       });
     } catch (error) {
       const errStr =
