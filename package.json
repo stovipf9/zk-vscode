@@ -36,6 +36,10 @@
       {
         "command": "zk.find",
         "title": "zk: Find Note"
+      },
+      {
+        "command": "zk.random",
+        "title": "zk: Open a random note"
       }
     ],
     "configuration": {

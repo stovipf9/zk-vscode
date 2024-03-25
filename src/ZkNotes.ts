@@ -156,4 +156,8 @@ export class ZkNotes {
   toQuickPickItems(): (vscode.QuickPickItem & { uri: vscode.Uri })[] {
     return this.notes.map((zkNote: ZkNote) => zkNote.toQuickPickItem());
   }
+
+  randomNote(): ZkNote {
+    return this.notes[Math.floor(Math.random() * this.notes.length)];
+  }
 }

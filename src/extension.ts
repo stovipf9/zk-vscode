@@ -56,6 +56,9 @@ export async function activate(context: ExtensionContext) {
       if (selected) {
         vscode.commands.executeCommand("vscode.open", selected.uri);
       }
+    }),
+    vscode.commands.registerCommand(`${clientId}.random`, () => {
+      vscode.commands.executeCommand("vscode.open", zkNotes.randomNote().uri);
     })
   );
 
